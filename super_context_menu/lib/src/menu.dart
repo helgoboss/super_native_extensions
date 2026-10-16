@@ -57,6 +57,7 @@ class ContextMenuWidget extends StatelessWidget {
     this.deferredPreviewBuilder,
     required this.child,
     this.hitTestBehavior = HitTestBehavior.deferToChild,
+    this.trigger = ContextMenuTrigger.secondary,
     required this.menuProvider,
     this.iconTheme,
     this.contextMenuIsAllowed = _defaultContextMenuIsAllowed,
@@ -76,6 +77,10 @@ class ContextMenuWidget extends StatelessWidget {
   final DeferredMenuPreview Function(BuildContext context, Widget child,
       CancellationToken cancellationToken)? deferredPreviewBuilder;
 
+  /// Mouse button that triggers the menu.
+  ///
+  /// Only respected on desktop platforms.
+  final ContextMenuTrigger trigger;
   final HitTestBehavior hitTestBehavior;
   final MenuProvider menuProvider;
   final ContextMenuIsAllowed contextMenuIsAllowed;
@@ -114,6 +119,7 @@ class ContextMenuWidget extends StatelessWidget {
           );
         } else {
           return DesktopContextMenuWidget(
+            trigger: trigger,
             hitTestBehavior: hitTestBehavior,
             menuProvider: menuProvider,
             contextMenuIsAllowed: contextMenuIsAllowed,
@@ -142,4 +148,11 @@ class WritingToolsConfiguration {
   final String text;
   final Rect rect;
   final ValueChanged<String> onSuggestion;
+}
+
+enum ContextMenuTrigger {
+  /// Left mouse button.
+  primary,
+  /// Right mouse button or equivalent (e.g. left control key + left mouse button on macOS).
+  secondary,
 }

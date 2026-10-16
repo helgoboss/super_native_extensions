@@ -18,6 +18,7 @@ import 'util.dart';
 
 class _ContextMenuDetector extends StatefulWidget {
   const _ContextMenuDetector({
+    required this.trigger,
     required this.hitTestBehavior,
     required this.contextMenuIsAllowed,
     required this.onShowContextMenu,
@@ -25,6 +26,7 @@ class _ContextMenuDetector extends StatefulWidget {
   });
 
   final Widget child;
+  final ContextMenuTrigger trigger;
   final HitTestBehavior hitTestBehavior;
   final ContextMenuIsAllowed contextMenuIsAllowed;
   final Future<void> Function(Offset, Listenable, Function(bool))
@@ -56,8 +58,12 @@ class _ContextMenuDetectorState extends State<_ContextMenuDetector> {
     if (event.kind != PointerDeviceKind.mouse) {
       return false;
     }
-    if (event.buttons == kSecondaryButton ||
-        event.buttons == kPrimaryButton && _acceptPrimaryButton()) {
+    final triggerMatches = switch(widget.trigger) {
+      ContextMenuTrigger.primary => event.buttons == kPrimaryButton,
+      ContextMenuTrigger.secondary => event.buttons == kSecondaryButton ||
+          event.buttons == kPrimaryButton && _acceptPrimaryButton(),
+    };
+    if (triggerMatches) {
       return widget.contextMenuIsAllowed(event.position);
     }
 
@@ -139,6 +145,7 @@ class DesktopContextMenuWidget extends StatelessWidget {
   const DesktopContextMenuWidget({
     super.key,
     required this.child,
+    required this.trigger,
     required this.hitTestBehavior,
     required this.menuProvider,
     required this.contextMenuIsAllowed,
@@ -148,6 +155,7 @@ class DesktopContextMenuWidget extends StatelessWidget {
     this.iconTheme,
   });
 
+  final ContextMenuTrigger trigger;
   final HitTestBehavior hitTestBehavior;
   final MenuProvider menuProvider;
   final ContextMenuIsAllowed contextMenuIsAllowed;
@@ -165,6 +173,7 @@ class DesktopContextMenuWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ContextMenuDetector(
+      trigger: trigger,
       hitTestBehavior: hitTestBehavior,
       contextMenuIsAllowed: contextMenuIsAllowed,
       onShowContextMenu: (position, pointerUpListenable, onMenuResolved) async {
