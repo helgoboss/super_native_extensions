@@ -377,10 +377,15 @@ mixin RenderDropRegion on RenderObject {
   OnGetDropItemPreview? onGetDropItemPreview;
 
   DropFormatRegistration? _formatRegistration;
+  List<DataFormat>? _formats;
 
   void updateFormats(List<DataFormat> formats) {
+    if (listEquals(_formats, formats)) {
+      return;
+    }
     _formatRegistration?.dispose();
     _formatRegistration = DropFormatRegistry.instance.registerFormats(formats);
+    _formats = List.of(formats);
   }
 
   void _init({
@@ -464,10 +469,15 @@ mixin RenderDropMonitor on RenderObject {
   static final activeMonitors = <RenderDropMonitor>{};
 
   DropFormatRegistration? _formatRegistration;
+  List<DataFormat>? _formats;
 
   void updateFormats(List<DataFormat> formats) {
+    if (listEquals(_formats, formats)) {
+      return;
+    }
     _formatRegistration?.dispose();
     _formatRegistration = DropFormatRegistry.instance.registerFormats(formats);
+    _formats = List.of(formats);
   }
 
   @override
