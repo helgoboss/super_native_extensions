@@ -308,6 +308,8 @@ class _DropContextDelegate extends raw.DropContextDelegate {
 }
 
 class DropFormatRegistry {
+  bool _updateScheduled = false;
+
   DropFormatRegistry._();
 
   DropFormatRegistration registerFormats(List<DataFormat> dataFormats) {
@@ -326,13 +328,26 @@ class DropFormatRegistry {
       List<PlatformFormat> formats) {
     final registration = DropFormatRegistration._(this);
     _registeredFormats[registration] = formats;
-    _updateIfNeeded();
+    _scheduleUpdate();
     return registration;
   }
 
   void _unregister(DropFormatRegistration registration) {
     _registeredFormats.remove(registration);
-    _updateIfNeeded();
+    _scheduleUpdate();
+  }
+
+  void _scheduleUpdate() {
+    if (_updateScheduled) {
+      // An update was already scheduled. No need to call the potentially very expensive
+      // _updateIfNeeded function again!
+      return;
+    }
+    _updateScheduled = true;
+    scheduleMicrotask(() {
+      _updateScheduled = false;
+      _updateIfNeeded();
+    });
   }
 
   void _updateIfNeeded() async {
