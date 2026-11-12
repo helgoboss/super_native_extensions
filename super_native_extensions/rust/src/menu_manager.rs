@@ -385,4 +385,9 @@ impl AsyncMethodHandler for MenuManager {
             _ => Ok(Value::Null),
         }
     }
+
+    fn on_isolate_destroyed(&self, isolate: IsolateId) {
+        let removed = self.contexts.borrow_mut().remove(&isolate);
+        drop(removed);
+    }
 }

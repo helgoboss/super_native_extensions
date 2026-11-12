@@ -132,6 +132,35 @@ pub struct LocalDataRequest {
 }
 
 impl DragManager {
+    /// Remove drag, drop and menu contexts before this view's engine shuts down.
+    #[cfg(target_os = "macos")]
+    pub fn prepare_for_view_shutdown(&self, view: *const std::ffi::c_void) {
+        let isolates: Vec<_> = self
+            .contexts
+            .borrow()
+            .iter()
+            .filter(|(_, context)| {
+                // controller.view is a wrapper around the registrar's Flutter view.
+                let mut ancestor = Some(context.view.clone());
+                while let Some(candidate) = ancestor {
+                    if (&*candidate as *const _ as *const std::ffi::c_void) == view {
+                        return true;
+                    }
+                    ancestor = unsafe { candidate.superview() };
+                }
+                false
+            })
+            .map(|(isolate, _)| *isolate)
+            .collect();
+        for isolate in isolates {
+            // Drop outside the map borrow: releasing providers can call back into us.
+            let removed = self.contexts.borrow_mut().remove(&isolate);
+            drop(removed);
+            Context::get().drop_manager().on_isolate_destroyed(isolate);
+            Context::get().menu_manager().on_isolate_destroyed(isolate);
+        }
+    }
+
     pub fn new() -> RegisteredAsyncMethodHandler<Self> {
         Self {
             weak_self: Late::new(),

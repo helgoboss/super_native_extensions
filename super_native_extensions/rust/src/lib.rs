@@ -134,6 +134,14 @@ pub extern "C" fn super_native_extensions_init() {
     init(true);
 }
 
+#[cfg(target_os = "macos")]
+#[no_mangle]
+pub extern "C" fn super_native_extensions_prepare_for_view_shutdown(view: *const c_void) {
+    if let Some(context) = Context::current() {
+        context.drag_manager().prepare_for_view_shutdown(view);
+    }
+}
+
 #[cfg(target_os = "android")]
 mod android {
 
